@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { 
   Table, 
@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileText, Search } from "lucide-react";
+import { FileText, Search, Printer } from "lucide-react";
 import { Payment, Bill, Customer } from "@/types/models";
 import { 
   paymentService, 
@@ -41,6 +41,7 @@ const Payments: React.FC = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("all");
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
+  const paymentsTableRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // تحميل البيانات
@@ -113,15 +114,92 @@ const Payments: React.FC = () => {
     }
   };
 
+  const handlePrintPayments = () => {
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    
+    if (printWindow && paymentsTableRef.current) {
+      // Get the current date for the report header
+      const currentDate = new Date().toLocaleDateString('ar-SA');
+      
+      // Create a complete HTML document with necessary styles
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="UTF-8">
+          <title>تقرير المدفوعات</title>
+          <style>
+            @media print {
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+              th { background-color: #f2f2f2; font-weight: bold; }
+              .report-header { text-align: center; margin-bottom: 20px; }
+              .report-title { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+              .report-date { font-size: 14px; color: #666; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="report-header">
+            <div class="report-title">تقرير المدفوعات</div>
+            <div class="report-date">تاريخ التقرير: ${currentDate}</div>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>رقم العملية</th>
+                <th>المشترك</th>
+                <th>رقم الفاتورة</th>
+                <th>تاريخ الدفع</th>
+                <th>المبلغ</th>
+                <th>طريقة الدفع</th>
+                <th>ملاحظات</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredPayments.map(payment => `
+                <tr>
+                  <td>${payment.id.substring(0, 8)}</td>
+                  <td>${getCustomerName(payment.customerId)}</td>
+                  <td>${getBillNumber(payment.billId)}</td>
+                  <td>${formatDate(payment.paymentDate)}</td>
+                  <td>${formatCurrency(payment.amount)}</td>
+                  <td>${getPaymentMethodName(payment.paymentMethod)}</td>
+                  <td>${payment.notes || "-"}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <script>
+            window.onload = function() { window.print(); window.close(); }
+          </script>
+        </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-3xl font-bold">المدفوعات</h1>
-        <Button asChild>
-          <Link to="/payments/new">
-            تسجيل دفعة جديدة
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link to="/payments/new">
+              تسجيل دفعة جديدة
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={handlePrintPayments} className="print:hidden">
+            <Printer className="ml-2 h-4 w-4" />
+            طباعة التقرير
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -183,7 +261,7 @@ const Payments: React.FC = () => {
           </div>
 
           {filteredPayments.length > 0 ? (
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-md border overflow-hidden" ref={paymentsTableRef}>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -194,7 +272,7 @@ const Payments: React.FC = () => {
                     <TableHead>المبلغ</TableHead>
                     <TableHead>طريقة الدفع</TableHead>
                     <TableHead>ملاحظات</TableHead>
-                    <TableHead className="text-left">عرض</TableHead>
+                    <TableHead className="text-left print:hidden">عرض</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -207,7 +285,7 @@ const Payments: React.FC = () => {
                       <TableCell className="font-medium">{formatCurrency(payment.amount)}</TableCell>
                       <TableCell>{getPaymentMethodName(payment.paymentMethod)}</TableCell>
                       <TableCell>{payment.notes || "-"}</TableCell>
-                      <TableCell>
+                      <TableCell className="print:hidden">
                         <Button 
                           variant="ghost" 
                           size="icon"

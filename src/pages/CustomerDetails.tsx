@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { 
   Card, 
@@ -62,6 +62,7 @@ const CustomerDetails: React.FC = () => {
   const [selectedBillPayments, setSelectedBillPayments] = useState<Payment[]>([]);
   const [selectedBillReading, setSelectedBillReading] = useState<MeterReading | null>(null);
   const [selectedBillPeriod, setSelectedBillPeriod] = useState<string>("");
+  const billDetailsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -128,6 +129,48 @@ const CustomerDetails: React.FC = () => {
 
   const handlePaymentSuccess = () => {
     loadCustomerData();
+  };
+
+  const handlePrintBill = () => {
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    
+    if (printWindow && billDetailsRef.current) {
+      // Get the HTML content of the bill details
+      const content = billDetailsRef.current.innerHTML;
+      
+      // Create a complete HTML document with necessary styles
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="UTF-8">
+          <title>فاتورة - ${customer?.name || ''}</title>
+          <style>
+            @media print {
+              body { font-family: Arial, sans-serif; }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { border: 1px solid #ddd; padding: 8px; }
+              th { background-color: #f2f2f2; }
+              .text-success { color: #10b981; }
+              .text-danger { color: #ef4444; }
+              .text-right { text-align: right; }
+              .text-left { text-align: left; }
+              .font-bold { font-weight: bold; }
+            }
+          </style>
+        </head>
+        <body>
+          ${content}
+          <script>
+            window.onload = function() { window.print(); window.close(); }
+          </script>
+        </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+    }
   };
 
   const getContractTypeName = (type: string | undefined): string => {
@@ -310,11 +353,11 @@ const CustomerDetails: React.FC = () => {
                       </div>
                       
                       {selectedBill && selectedBillReading && (
-                        <div className="mt-6">
+                        <div className="mt-6" ref={billDetailsRef}>
                           <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold">تفاصيل الفاتورة</h3>
                             <div className="flex items-center gap-2">
-                              <Button variant="outline" size="sm" className="print:hidden">
+                              <Button variant="outline" size="sm" className="print:hidden" onClick={handlePrintBill}>
                                 <Printer className="ml-1 h-4 w-4" />
                                 طباعة
                               </Button>
@@ -342,6 +385,7 @@ const CustomerDetails: React.FC = () => {
                               createdAt: new Date()
                             }}
                             payments={selectedBillPayments}
+                            onPrint={handlePrintBill}
                           />
                           
                           {!selectedBill.isPaid && (
