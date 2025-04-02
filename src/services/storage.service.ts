@@ -304,7 +304,7 @@ export const settingsService = {
   },
   
   update: (updates: Partial<SystemSettings>): SystemSettings => {
-    const settings = this.get();
+    const settings = settingsService.get();
     const updatedSettings: SystemSettings = {
       ...settings,
       ...updates,
