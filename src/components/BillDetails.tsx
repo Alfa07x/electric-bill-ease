@@ -31,6 +31,23 @@ const BillDetails: React.FC<BillDetailsProps> = ({
     }
   };
 
+  // Helper function to safely handle dates
+  const getDueDate = (): Date => {
+    if (bill.dueDate) {
+      return bill.dueDate;
+    }
+    
+    // If issueDate is not a valid Date object, create a new one
+    const issueDate = bill.issueDate instanceof Date && !isNaN(bill.issueDate.getTime())
+      ? bill.issueDate
+      : new Date();
+      
+    // Add 14 days to issue date as default due date
+    const defaultDueDate = new Date(issueDate);
+    defaultDueDate.setDate(defaultDueDate.getDate() + 14);
+    return defaultDueDate;
+  };
+
   return (
     <Card className="print:shadow-none print:border-none" id="bill-print-section">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -224,7 +241,7 @@ const BillDetails: React.FC<BillDetailsProps> = ({
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm text-gray-500">
-                  يرجى سداد المبلغ المستحق قبل تاريخ {formatDate(bill.dueDate || new Date(bill.issueDate.getTime() + 14 * 24 * 60 * 60 * 1000))}
+                  يرجى سداد المبلغ المستحق قبل تاريخ {formatDate(getDueDate())}
                 </p>
                 <p className="text-sm text-gray-500">
                   للاستفسارات، يرجى الاتصال على: 920001234

@@ -11,6 +11,13 @@ type DbPayment = Database["public"]["Tables"]["payments"]["Row"];
 type DbNotification = Database["public"]["Tables"]["notifications"]["Row"];
 type DbSystemSettings = Database["public"]["Tables"]["system_settings"]["Row"];
 
+// Helper function to safely convert string to Date
+const safeConvertToDate = (dateString: string | null | undefined): Date | undefined => {
+  if (!dateString) return undefined;
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? undefined : date;
+};
+
 // Customer adapters
 export const toCustomer = (dbCustomer: DbCustomer): Customer => ({
   id: dbCustomer.id,
@@ -21,7 +28,7 @@ export const toCustomer = (dbCustomer: DbCustomer): Customer => ({
   meterNumber: dbCustomer.meter_number,
   notes: dbCustomer.notes || undefined,
   contractType: dbCustomer.contract_type || undefined,
-  createdAt: new Date(dbCustomer.created_at)
+  createdAt: safeConvertToDate(dbCustomer.created_at) || new Date()
 });
 
 export const toDbCustomer = (customer: Partial<Customer>): Partial<DbCustomer> => ({
@@ -39,10 +46,10 @@ export const toDbCustomer = (customer: Partial<Customer>): Partial<DbCustomer> =
 export const toBillingPeriod = (dbPeriod: DbBillingPeriod): BillingPeriod => ({
   id: dbPeriod.id,
   name: dbPeriod.name,
-  startDate: new Date(dbPeriod.start_date),
-  endDate: dbPeriod.end_date ? new Date(dbPeriod.end_date) : undefined,
+  startDate: safeConvertToDate(dbPeriod.start_date) || new Date(),
+  endDate: safeConvertToDate(dbPeriod.end_date),
   isActive: dbPeriod.is_active,
-  createdAt: new Date(dbPeriod.created_at)
+  createdAt: safeConvertToDate(dbPeriod.created_at) || new Date()
 });
 
 export const toDbBillingPeriod = (period: Partial<BillingPeriod>): Partial<DbBillingPeriod> => ({
@@ -60,9 +67,9 @@ export const toMeterReading = (dbReading: DbMeterReading): MeterReading => ({
   periodId: dbReading.period_id,
   previousReading: Number(dbReading.previous_reading),
   currentReading: Number(dbReading.current_reading),
-  readingDate: new Date(dbReading.reading_date),
+  readingDate: safeConvertToDate(dbReading.reading_date) || new Date(),
   consumption: Number(dbReading.consumption),
-  createdAt: new Date(dbReading.created_at)
+  createdAt: safeConvertToDate(dbReading.created_at) || new Date()
 });
 
 export const toDbMeterReading = (reading: Partial<MeterReading>): Partial<DbMeterReading> => ({
@@ -90,9 +97,9 @@ export const toBill = (dbBill: DbBill): Bill => ({
   paidAmount: Number(dbBill.paid_amount),
   remainingAmount: Number(dbBill.remaining_amount),
   isPaid: dbBill.is_paid,
-  issueDate: new Date(dbBill.issue_date),
-  dueDate: dbBill.due_date ? new Date(dbBill.due_date) : undefined,
-  createdAt: new Date(dbBill.created_at)
+  issueDate: safeConvertToDate(dbBill.issue_date) || new Date(),
+  dueDate: safeConvertToDate(dbBill.due_date),
+  createdAt: safeConvertToDate(dbBill.created_at) || new Date()
 });
 
 export const toDbBill = (bill: Partial<Bill>): Partial<DbBill> => ({
@@ -119,10 +126,10 @@ export const toPayment = (dbPayment: DbPayment): Payment => ({
   billId: dbPayment.bill_id,
   customerId: dbPayment.customer_id,
   amount: Number(dbPayment.amount),
-  paymentDate: new Date(dbPayment.payment_date),
+  paymentDate: safeConvertToDate(dbPayment.payment_date) || new Date(),
   paymentMethod: dbPayment.payment_method,
   notes: dbPayment.notes || undefined,
-  createdAt: new Date(dbPayment.created_at)
+  createdAt: safeConvertToDate(dbPayment.created_at) || new Date()
 });
 
 export const toDbPayment = (payment: Partial<Payment>): Partial<DbPayment> => ({
@@ -142,7 +149,7 @@ export const toNotification = (dbNotification: DbNotification): Notification => 
   message: dbNotification.message,
   type: dbNotification.type as any,
   isRead: dbNotification.is_read,
-  createdAt: new Date(dbNotification.created_at)
+  createdAt: safeConvertToDate(dbNotification.created_at) || new Date()
 });
 
 export const toDbNotification = (notification: Partial<Notification>): Partial<DbNotification> => ({
@@ -159,7 +166,7 @@ export const toSystemSettings = (dbSettings: DbSystemSettings): SystemSettings =
   kilowattPrice: Number(dbSettings.kilowatt_price),
   subscriptionFee: Number(dbSettings.subscription_fee),
   taxRate: Number(dbSettings.tax_rate),
-  updatedAt: new Date(dbSettings.updated_at)
+  updatedAt: safeConvertToDate(dbSettings.updated_at) || new Date()
 });
 
 export const toDbSystemSettings = (settings: Partial<SystemSettings>): Partial<DbSystemSettings> => ({
