@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Bill, Customer, MeterReading, BillingPeriod, Payment } from "@/types/models";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,13 +33,14 @@ const BillDetails: React.FC<BillDetailsProps> = ({
   // Helper function to safely handle dates
   const getDueDate = (): Date => {
     if (bill.dueDate) {
-      return bill.dueDate;
+      const dueDate = bill.dueDate instanceof Date ? bill.dueDate : new Date(bill.dueDate);
+      if (!isNaN(dueDate.getTime())) return dueDate;
     }
     
     // If issueDate is not a valid Date object, create a new one
     const issueDate = bill.issueDate instanceof Date && !isNaN(bill.issueDate.getTime())
       ? bill.issueDate
-      : new Date();
+      : bill.issueDate instanceof Date ? new Date() : new Date(bill.issueDate || new Date());
       
     // Add 14 days to issue date as default due date
     const defaultDueDate = new Date(issueDate);
