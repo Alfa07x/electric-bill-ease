@@ -9,7 +9,295 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      billing_periods: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          is_active: boolean
+          name: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          start_date?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          start_date?: string
+        }
+        Relationships: []
+      }
+      bills: {
+        Row: {
+          consumption: number
+          consumption_cost: number
+          created_at: string
+          customer_id: string
+          due_date: string | null
+          id: string
+          is_paid: boolean
+          issue_date: string
+          meter_reading_id: string
+          paid_amount: number
+          period_id: string
+          previous_balance: number
+          remaining_amount: number
+          subscription_fee: number
+          tax_amount: number
+          total_amount: number
+        }
+        Insert: {
+          consumption: number
+          consumption_cost: number
+          created_at?: string
+          customer_id: string
+          due_date?: string | null
+          id?: string
+          is_paid?: boolean
+          issue_date?: string
+          meter_reading_id: string
+          paid_amount?: number
+          period_id: string
+          previous_balance?: number
+          remaining_amount: number
+          subscription_fee: number
+          tax_amount: number
+          total_amount: number
+        }
+        Update: {
+          consumption?: number
+          consumption_cost?: number
+          created_at?: string
+          customer_id?: string
+          due_date?: string | null
+          id?: string
+          is_paid?: boolean
+          issue_date?: string
+          meter_reading_id?: string
+          paid_amount?: number
+          period_id?: string
+          previous_balance?: number
+          remaining_amount?: number
+          subscription_fee?: number
+          tax_amount?: number
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bills_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bills_meter_reading_id_fkey"
+            columns: ["meter_reading_id"]
+            isOneToOne: false
+            referencedRelation: "meter_readings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bills_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "billing_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          account_number: string
+          address: string
+          contract_type: string | null
+          created_at: string
+          id: string
+          meter_number: string
+          name: string
+          notes: string | null
+          phone: string
+        }
+        Insert: {
+          account_number: string
+          address: string
+          contract_type?: string | null
+          created_at?: string
+          id?: string
+          meter_number: string
+          name: string
+          notes?: string | null
+          phone: string
+        }
+        Update: {
+          account_number?: string
+          address?: string
+          contract_type?: string | null
+          created_at?: string
+          id?: string
+          meter_number?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+        }
+        Relationships: []
+      }
+      meter_readings: {
+        Row: {
+          consumption: number
+          created_at: string
+          current_reading: number
+          customer_id: string
+          id: string
+          period_id: string
+          previous_reading: number
+          reading_date: string
+        }
+        Insert: {
+          consumption: number
+          created_at?: string
+          current_reading: number
+          customer_id: string
+          id?: string
+          period_id: string
+          previous_reading: number
+          reading_date?: string
+        }
+        Update: {
+          consumption?: number
+          created_at?: string
+          current_reading?: number
+          customer_id?: string
+          id?: string
+          period_id?: string
+          previous_reading?: number
+          reading_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meter_readings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meter_readings_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "billing_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          bill_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string
+        }
+        Insert: {
+          amount: number
+          bill_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method: string
+        }
+        Update: {
+          amount?: number
+          bill_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_settings: {
+        Row: {
+          id: string
+          kilowatt_price: number
+          subscription_fee: number
+          tax_rate: number
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          kilowatt_price: number
+          subscription_fee: number
+          tax_rate: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          kilowatt_price?: number
+          subscription_fee?: number
+          tax_rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
